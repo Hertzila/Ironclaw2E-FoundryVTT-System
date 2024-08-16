@@ -117,7 +117,7 @@ export class CardinalDiceRoller {
      * @returns {Promise<DiceReturn>} Promise of the roll and the message object or data (depending on sendinchat, true | false) in an object
      */
     static async copyToRollTN(tni, message, sendinchat = true, rerolltype = "", copyoptions = {}) {
-        if (!(message) || message.type !== CONST.CHAT_MESSAGE_TYPES.ROLL) {
+        if (!(message) || !(message.isRoll)) {
             console.warn("Somehow, a message that isn't a roll got into 'copyToRollTN'.");
             console.warn(message);
             return;
@@ -226,7 +226,7 @@ export class CardinalDiceRoller {
      * @returns {Promise<DiceReturn>} Promise of the roll and the message object or data (depending on sendinchat, true | false) in an object
      */
     static async copyToRollHighest(message, sendinchat = true, rerolltype = "", copyoptions = {}) {
-        if (!(message) || message.type !== CONST.CHAT_MESSAGE_TYPES.ROLL) {
+        if (!(message) || !(message.isRoll)) {
             console.warn("Somehow, a message that isn't a roll got into 'copyToRollHighest'.");
             console.warn(message);
             return;
