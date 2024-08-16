@@ -117,7 +117,7 @@ export class CardinalDiceRoller {
      * @returns {Promise<DiceReturn>} Promise of the roll and the message object or data (depending on sendinchat, true | false) in an object
      */
     static async copyToRollTN(tni, message, sendinchat = true, rerolltype = "", copyoptions = {}) {
-        if (!(message) || message.type !== CONST.CHAT_MESSAGE_TYPES.ROLL) {
+        if (!(message) || !(message.isRoll)) {
             console.warn("Somehow, a message that isn't a roll got into 'copyToRollTN'.");
             console.warn(message);
             return;
@@ -128,7 +128,8 @@ export class CardinalDiceRoller {
             return;
         }
 
-        const usedSpeaker = (copyoptions.replacespeaker ? { "alias": (message.speaker?.alias ?? game.i18n.localize("ironclaw2e.chatInfo.miniRoll")) } : message.speaker);
+        
+		const usedSpeaker = (copyoptions.replacespeaker ? { "alias": (message.speaker?.alias ?? game.i18n.localize("ironclaw2e.chatInfo.miniRoll")) } : message.speaker);
         let intermediary = [...message.getFlag("ironclaw2e", "rollIntermediary")];
         let rollString = CardinalDiceRoller.copyDicePoolResult(message.rolls?.[0]);
         let directCopy = true;
@@ -146,9 +147,8 @@ export class CardinalDiceRoller {
             return;
         }
 
-        let roll = await new Roll("{" + rollString + "}cs>" + tni).evaluate({ async: true });
-
-        const successes = roll.total;
+		let roll = message.rolls?.[0];
+		let successes = 0;
         let highest = 0;
         let ties = 0;
         let hasOne = false;
@@ -157,8 +157,9 @@ export class CardinalDiceRoller {
             if (x.result === tni) ties++;
             if (x.result > highest) highest = x.result;
             if (x.result === 1) hasOne = true;
+			if (x.result > tni) successes++;
         });
-
+		
         const flavorstring = CardinalDiceRoller.flavorStringTN(successes, ties, highest, `${(directCopy ? game.i18n.localize("ironclaw2e.chatInfo.copy") : rerollFlavor)} ${game.i18n.localize("ironclaw2e.chatInfo.tn")}:`, label);
 
         /** @type TNData */
@@ -226,7 +227,7 @@ export class CardinalDiceRoller {
      * @returns {Promise<DiceReturn>} Promise of the roll and the message object or data (depending on sendinchat, true | false) in an object
      */
     static async copyToRollHighest(message, sendinchat = true, rerolltype = "", copyoptions = {}) {
-        if (!(message) || message.type !== CONST.CHAT_MESSAGE_TYPES.ROLL) {
+        if (!(message) || !(message.isRoll)) {
             console.warn("Somehow, a message that isn't a roll got into 'copyToRollHighest'.");
             console.warn(message);
             return;
@@ -255,8 +256,15 @@ export class CardinalDiceRoller {
             return;
         }
 
-        let roll = await new Roll("{" + rollString + "}kh1").evaluate({ async: true });
-        const flavorstring = CardinalDiceRoller.flavorStringHighest(roll.total, `${(directCopy ? game.i18n.localize("ironclaw2e.chatInfo.copy") : rerollFlavor)} ${game.i18n.localize("ironclaw2e.chatInfo.high")}:`, label);
+        //let roll = await new Roll("{" + rollString + "}kh1").evaluate({ async: true });
+		let roll = message.rolls?.[0];
+		let highest = 0;
+		
+		roll.terms[0].results.forEach(x => {
+		    if (x.result > highest) highest = x.result;
+		});
+		
+        const flavorstring = CardinalDiceRoller.flavorStringHighest(highest, `${(directCopy ? game.i18n.localize("ironclaw2e.chatInfo.copy") : rerollFlavor)} ${game.i18n.localize("ironclaw2e.chatInfo.high")}:`, label);
 
         const hasOne = roll.terms[0].results.some(x => x.result === 1); // Find if one of the dice "rolled" a "1"
 
@@ -268,7 +276,7 @@ export class CardinalDiceRoller {
 
         await CardinalDiceRoller.copyIronclawRollFlags(message, msg);
 
-        return { "roll": roll, "highest": roll.total, "tnData": null, "message": msg, "isSent": sendinchat };
+        return { "roll": roll, "highest": highest, "tnData": null, "message": msg, "isSent": sendinchat };
     }
 
     /**
@@ -604,7 +612,6 @@ export class CardinalDiceRoller {
             // Remove the trailing comma
             formula = formula.slice(0, -1);
         }
-
 
         return formula;
     }
