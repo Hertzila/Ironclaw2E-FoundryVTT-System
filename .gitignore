@@ -9,3 +9,10 @@ npm-debug.log
 # FoundryVTT instance-specific files
 ironclaw2e.lock
 *.db~
+
+# Generated pack / LevelDB artifacts
+packs/**/CURRENT
+packs/**/LOG
+packs/**/MANIFEST-*
+packs/status-effects/*.log
+packs/**
