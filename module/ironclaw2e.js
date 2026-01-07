@@ -191,7 +191,7 @@ Hooks.once('setup', function () {
 Hooks.once("ready", function () {
     // Wait to register hotbar drop hook on ready so that modules could register earlier if they want to
     Hooks.on("hotbarDrop", (bar, data, slot) => createIronclaw2EMacro(data, slot));
-
+	console.log(game.ironclaw2e.ironclawLogHeader + "Ironclaw2E System Ready One");
     // Check and set default Combat Tracker options if they do not exist
     let ctOptions = game.settings.get("core", Combat.CONFIG_SETTING);
     if (jQuery.isEmptyObject(ctOptions)) {
@@ -203,7 +203,7 @@ Hooks.once("ready", function () {
             manualTN: -1
         });
     }
-
+	console.log(game.ironclaw2e.ironclawLogHeader + "Ironclaw2E System Ready Two");
     // World Version checks 
     if (game.user.isGM) {
         const lastVersion = game.settings.get("ironclaw2e", "lastSystemVersionWorld");
@@ -213,12 +213,13 @@ Hooks.once("ready", function () {
         }
         game.settings.set("ironclaw2e", "lastSystemVersionWorld", game.system.version);
     }
-
+	console.log(game.ironclaw2e.ironclawLogHeader + "Ironclaw2E System Ready Three");
     // Client Version checks
     const lastClientVersion = game.settings.get("ironclaw2e", "lastSystemVersionClient");
     if (checkIfNewerVersion(game.system.version, lastClientVersion)) {
         // Insert changelog popups here
     }
+	console.log(game.ironclaw2e.ironclawLogHeader + "Ironclaw2E System Ready Four");
     game.settings.set("ironclaw2e", "lastSystemVersionClient", game.system.version);
 
 
@@ -706,17 +707,57 @@ function systemSidebarAction(event) {
     }
 }
 
-Hooks.on("renderSettings", function (settings, html, data) {
-    const docsHolder = html.find("#settings-documentation");
-    let readme = `<button data-system-action="system-readme">
-            <i class="fas fa-book"></i> ${game.i18n.localize("ironclaw2e.sidebar.readme")}
-        </button>
-            <button data-system-action="system-changelog">
-            <i class="fas fa-clipboard-list"></i> ${game.i18n.localize("ironclaw2e.sidebar.changelog")}
-        </button>`;
-    docsHolder.prepend(readme);
-    docsHolder.find("button[data-system-action]").click(systemSidebarAction.bind(this));
+Hooks.on("renderSettings", (app, html) => {
+  console.log("renderSettings fired");
+
+  // Log all h4s and their text content
+  const headers = html.querySelectorAll("h4");
+  headers.forEach((h, i) => {
+    console.log(`Header ${i}:`, `"${h.textContent.trim()}"`, h);
+  });
+
+  // Also log all section elements for reference
+  const sections = html.querySelectorAll("section");
+  console.log(`Found ${sections.length} sections:`);
+  sections.forEach((sec, i) => {
+    // Show first 50 chars of section text for context
+    console.log(`Section ${i}:`, sec.textContent.trim().slice(0, 50), sec);
+  });
 });
+
+Hooks.on("renderSettings", (app,html) => {
+	console.log("renderSettings fired");
+
+	// Find the section with class "documentation"
+	const helpSection = html.querySelector("section.documentation");
+
+	if (!helpSection) {
+	  console.warn("Help and Documentation section not found");
+	  return;
+	}
+		
+	// Avoid adding the button twice
+	if (helpSection.querySelector(".my-custom-settings-button")) return;
+	
+	
+	//Add Readme Button
+	const readmeButton = document.createElement("button");
+	readmeButton.className = "my-custom-settings-button";
+	readmeButton.dataset.systemAction = "system-readme";
+	readmeButton.innerHTML ='<i class="fas fa-book-open"></i>' + game.i18n.localize("ironclaw2e.sidebar.readme");
+	readmeButton.addEventListener("click", systemSidebarAction);
+	
+	// Add Changelog Button
+	const changeLogButton = document.createElement("button");
+	changeLogButton.className = "my-custom-settings-button";
+	changeLogButton.dataset.systemAction = "system-changelog";
+	changeLogButton.innerHTML ='<i class="fas fa-clipboard-list"></i>' + game.i18n.localize("ironclaw2e.sidebar.changelog");
+	changeLogButton.addEventListener("click", systemSidebarAction);
+	
+	helpSection.appendChild(readmeButton);
+	helpSection.appendChild(changeLogButton);
+})
+
 
 /* -------------------------------------------- */
 /*  Functions                                   */
