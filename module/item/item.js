@@ -1486,12 +1486,15 @@ export class Ironclaw2EItem extends Item {
         }
 
         // Grab the user's target
-        let target = null;
+        /*let target = null;
         if (defendermessage) {
             target = getTokenFromSpeaker(defendermessage.speaker);
         } else if (game.user.targets?.size > 0) {
             [target] = game.user.targets;
-        }
+        }*/
+		
+		// TODO : Set a custom flag so that I can switch the system between RAW and my custom rolling
+		let target = 3;
 
         // If the attack should roll tactics too, put them in the used stats
         const usedStats = [...itemSys.attackStats];
